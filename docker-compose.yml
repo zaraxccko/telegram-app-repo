@@ -11,8 +11,11 @@ services:
       - PORT=3000
     volumes:
       - ./data:/app/data
-    # На VPS уже работает другой reverse proxy на 80/443.
-    # Пробрасываем приложение на свободный порт хоста 3001 (только на localhost).
-    # Внешний прокси (Caddy/Nginx на хосте) проксирует домен → 127.0.0.1:3001.
-    ports:
-      - "127.0.0.1:3001:3000"
+    # Подключаемся к существующей сети loveshop-стека.
+    # Reverse proxy (loveshop-proxy-1) будет ходить сюда по имени krivko-app:3000.
+    networks:
+      - loveshop_default
+
+networks:
+  loveshop_default:
+    external: true
