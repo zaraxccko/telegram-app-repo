@@ -114,7 +114,7 @@ export const ru = {
   deposit_title: 'Пополнение',
   deposit_amount: 'Сумма в USD',
   deposit_enter_amount: 'Введите сумму',
-  deposit_min: 'Минимум $5',
+  deposit_min: 'Минимум $1',
   deposit_continue: 'Продолжить',
   deposit_choose_network: 'Выберите сеть',
   deposit_address: 'Адрес для пополнения',

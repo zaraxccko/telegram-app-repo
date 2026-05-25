@@ -114,7 +114,7 @@ export const en = {
   deposit_title: 'Add Funds',
   deposit_amount: 'Amount in USD',
   deposit_enter_amount: 'Enter amount',
-  deposit_min: 'Minimum $5',
+  deposit_min: 'Minimum $1',
   deposit_continue: 'Continue',
   deposit_choose_network: 'Choose network',
   deposit_address: 'Deposit address',
