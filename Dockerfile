@@ -10,6 +10,11 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 
 WORKDIR /app
 
+ARG VITE_ADMIN_IDS=""
+ARG VITE_ADMIN_HASHES=""
+ENV VITE_ADMIN_IDS=$VITE_ADMIN_IDS
+ENV VITE_ADMIN_HASHES=$VITE_ADMIN_HASHES
+
 COPY package.json package-lock.json* bun.lock* ./
 RUN npm install --no-audit --no-fund
 
