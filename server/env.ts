@@ -14,6 +14,8 @@ export const ENV = {
   port: Number(opt("PORT", "3000")),
   botToken: req("BOT_TOKEN"),
   adminChatId: req("ADMIN_CHAT_ID"),
+  webAppUrl: opt("WEBAPP_URL") || opt("VITE_SITE_URL"),
+  webhookSecret: opt("TELEGRAM_WEBHOOK_SECRET"),
   adminHashes: (opt("ADMIN_HASHES") || opt("VITE_ADMIN_HASHES"))
     .split(",")
     .map((h) => h.trim().toLowerCase())
