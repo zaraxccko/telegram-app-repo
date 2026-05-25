@@ -1,0 +1,13 @@
+# Replace YOUR_DOMAIN with your actual domain, e.g. shop.example.com
+# Caddy auto-obtains HTTPS certificates from Let's Encrypt.
+# Make sure ports 80 and 443 are open on your server's firewall.
+
+YOUR_DOMAIN {
+    reverse_proxy localhost:3000
+
+    header {
+        X-Content-Type-Options nosniff
+        X-Frame-Options SAMEORIGIN
+        Referrer-Policy strict-origin-when-cross-origin
+    }
+}
