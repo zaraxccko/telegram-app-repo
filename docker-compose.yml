@@ -1,6 +1,10 @@
 services:
   app:
-    build: .
+    build:
+      context: .
+      args:
+        VITE_ADMIN_IDS: ${VITE_ADMIN_IDS:-}
+        VITE_ADMIN_HASHES: ${VITE_ADMIN_HASHES:-}
     image: krivko-app:latest
     container_name: krivko-app
     restart: unless-stopped
