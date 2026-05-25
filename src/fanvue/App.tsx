@@ -35,6 +35,7 @@ import { useTelegram } from './hooks/useTelegram'
 import { ToastProvider } from './components/Toast'
 
 const HIDE_NAV = ['/deposit', '/settings', '/admin', '/support', '/referral-calendar']
+const APP_ROUTES = ['/', '/market', '/product/', '/deposit', '/profile', '/orders', '/deposits', '/support', '/settings', '/referral-calendar', '/admin']
 
 function MaintenanceScreen() {
   const lang = useStore((s) => s.lang)
@@ -52,6 +53,9 @@ function AppInner() {
   const navigate = useNavigate()
   const { isLoading, initUser, maintenance } = useStore()
   const { init, showBackButton } = useTelegram()
+  const isKnownRoute = APP_ROUTES.some((p) =>
+    p === '/' ? location.pathname === '/' : location.pathname.startsWith(p),
+  )
 
   useEffect(() => {
     init()
@@ -70,6 +74,10 @@ function AppInner() {
     return cleanup
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [location.pathname])
+
+  useEffect(() => {
+    if (!isKnownRoute) navigate('/', { replace: true })
+  }, [isKnownRoute, navigate])
 
   const isAdminRoute = location.pathname.startsWith('/admin')
   const showNav = !HIDE_NAV.some((p) => location.pathname.startsWith(p)) &&
@@ -126,6 +134,7 @@ function AppInner() {
           <Route path="/support/chat" element={<Support />} />
           <Route path="/settings" element={<Settings />} />
           <Route path="/referral-calendar" element={<RefCalendar />} />
+          <Route path="*" element={<Home />} />
         </Routes>
       </div>
       {showNav && <Navigation />}
