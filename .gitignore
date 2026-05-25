@@ -3,6 +3,9 @@
 .env.local
 .env.*.local
 
+# Local runtime config — keep template (Caddyfile.example) in git, not the filled-in one
+Caddyfile
+
 # Logs
 logs
 *.log
