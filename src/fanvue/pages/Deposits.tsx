@@ -230,7 +230,7 @@ export default function Deposits() {
                   {lang === 'ru' ? 'Ваши пополнения появятся в этом списке' : 'Your deposits will show up here'}
                 </div>
                 <button
-                  onClick={() => navigate('/profile')}
+                  onClick={() => navigate('/deposit')}
                   style={{
                     background: GREEN, color: INK, border: 'none',
                     padding: '12px 22px', borderRadius: 999,
