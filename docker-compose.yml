@@ -1,15 +1,40 @@
 services:
   app:
     build: .
-    image: fanvue-shop:latest
-    container_name: fanvue
+    image: krivko-app:latest
+    container_name: krivko-app
     restart: unless-stopped
     env_file:
       - .env
-    ports:
-      - "3000:3000"
+    environment:
+      - NODE_ENV=production
+      - PORT=3000
     volumes:
-      - fanvue-data:/app/data
+      - ./data:/app/data
+    expose:
+      - "3000"
+    networks:
+      - web
+
+  caddy:
+    image: caddy:2-alpine
+    container_name: krivko-caddy
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy_data:/data
+      - caddy_config:/config
+    networks:
+      - web
+    depends_on:
+      - app
+
+networks:
+  web:
 
 volumes:
-  fanvue-data:
+  caddy_data:
+  caddy_config:
