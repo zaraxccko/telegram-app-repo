@@ -424,11 +424,11 @@ export default function RefWithdrawSheet({ open, onClose }: Props) {
                     </div>
                     <div style={{ position: 'relative', marginBottom: 10 }}>
                       <input
-                        type="number"
+                        type="text"
                         inputMode="decimal"
                         placeholder="100.00"
                         value={amount}
-                        onChange={(e) => setAmount(e.target.value)}
+                        onChange={(e) => setAmount(e.target.value.replace(/[^0-9.]/g, ''))}
                         style={{ ...inputStyle, paddingRight: 70 }}
                       />
                       <button
