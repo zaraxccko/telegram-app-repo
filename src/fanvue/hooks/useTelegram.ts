@@ -57,8 +57,12 @@ export function useTelegram() {
         if (!r) return
         const csa = r.contentSafeAreaInset as { top?: number } | undefined
         const sai = r.safeAreaInset as { top?: number } | undefined
-        const top = (csa?.top ?? 0) + (sai?.top ?? 0)
-        const val = top > 0 ? top : 56
+        // Telegram reports both device safe area (notch) and content safe area
+        // (Telegram header). Use the largest single value rather than summing —
+        // summing pushes the hero way down inside the WebView. Cap to 28px so
+        // the layout stays compact like the preview.
+        const top = Math.max(csa?.top ?? 0, sai?.top ?? 0)
+        const val = Math.min(top > 0 ? top : 14, 28)
         document.documentElement.style.setProperty('--tg-top', `${val}px`)
       }
 
