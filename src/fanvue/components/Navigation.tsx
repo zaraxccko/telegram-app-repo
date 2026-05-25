@@ -18,7 +18,7 @@ export default function Navigation() {
   const { haptic } = useTelegram()
 
   const activeIdx = items.findIndex((it) =>
-    it.path === '/' ? location.pathname === '/' : location.pathname.startsWith(it.path),
+    it.path === '/' ? location.pathname === '/' || location.pathname.startsWith('/market') : location.pathname.startsWith(it.path),
   )
 
   const [peeking, setPeeking] = useState(false)
