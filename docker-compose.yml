@@ -1,0 +1,15 @@
+services:
+  app:
+    build: .
+    image: fanvue-shop:latest
+    container_name: fanvue
+    restart: unless-stopped
+    env_file:
+      - .env
+    ports:
+      - "3000:3000"
+    volumes:
+      - fanvue-data:/app/data
+
+volumes:
+  fanvue-data:
