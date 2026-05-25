@@ -5,6 +5,7 @@ import { ENV } from "./env.js";
 import authRouter from "./routes/auth.js";
 import ordersRouter from "./routes/orders.js";
 import notifyRouter from "./routes/notify.js";
+import telegramRouter from "./routes/telegram.js";
 import { startPoller } from "./blockchain/poller.js";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
@@ -18,6 +19,7 @@ app.use(express.json());
 app.use(authRouter);
 app.use(ordersRouter);
 app.use(notifyRouter);
+app.use(telegramRouter);
 
 // ── Health check ────────────────────────────────────────────────────
 app.get("/api/health", (_req, res) => {
