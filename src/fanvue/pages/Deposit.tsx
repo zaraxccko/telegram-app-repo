@@ -91,7 +91,7 @@ export default function Deposit() {
   // when the timer expires, or when a new deposit is created with another coin.
 
   const numAmount = parseFloat(amount) || 0
-  const amountOk = numAmount >= 5
+  const amountOk = numAmount >= 1
   const cryptoOption = CRYPTO_OPTIONS.find((c) => c.id === network)
 
   const cancelDeposit = () => {
@@ -223,14 +223,14 @@ export default function Deposit() {
               </div>
 
               <AnimatePresence>
-                {numAmount > 0 && numAmount < 5 && (
+                {numAmount > 0 && numAmount < 1 && (
                   <motion.p
                     className="dpz-warn"
                     initial={false}
                     animate={{ opacity: 1, y: 0 }}
                     exit={{ opacity: 0, y: -4 }}
                   >
-                    {lang === 'ru' ? 'Минимум — $5' : 'Minimum is $5'}
+                    {lang === 'ru' ? 'Минимум — $1' : 'Minimum is $1'}
                   </motion.p>
                 )}
               </AnimatePresence>
