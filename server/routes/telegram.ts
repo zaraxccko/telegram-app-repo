@@ -94,15 +94,8 @@ router.post("/api/telegram/webhook", async (req: Request, res: Response) => {
       };
     };
 
-    if (update.message?.text?.startsWith("/start")) {
-      const lang = detectLang(update.message.from?.language_code);
-      await sendMessageWithKeyboard(
-        update.message.chat.id,
-        WELCOME[lang],
-        buildKeyboard(lang),
-      );
-      return;
-    }
+    // NOTE: /start handler temporarily disabled
+    // if (update.message?.text?.startsWith("/start")) { ... }
 
     if (update.callback_query?.data?.startsWith("lang:")) {
       const cb = update.callback_query;
