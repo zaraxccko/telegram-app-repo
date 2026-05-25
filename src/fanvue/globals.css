@@ -1421,6 +1421,11 @@ body::after { display: none; }
 .scroll-area { height: calc(100vh - var(--fv-nav-h)); }
 .scroll-area.vault-scroll { height: 100vh; }
 
+/* Ensure content sits above the fixed .fv-bg layer (z-index: 0).
+   Without an explicit z-index, .fv-bg can paint over .scroll-area in some
+   WebViews (notably Telegram on Android), hiding the entire UI. */
+.scroll-area { z-index: 1; }
+
 .fv-bg {
   position: fixed;
   inset: 0;
