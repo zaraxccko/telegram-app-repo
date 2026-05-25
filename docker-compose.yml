@@ -11,30 +11,8 @@ services:
       - PORT=3000
     volumes:
       - ./data:/app/data
-    expose:
-      - "3000"
-    networks:
-      - web
-
-  caddy:
-    image: caddy:2-alpine
-    container_name: krivko-caddy
-    restart: unless-stopped
+    # На VPS уже работает другой reverse proxy на 80/443.
+    # Пробрасываем приложение на свободный порт хоста 3001 (только на localhost).
+    # Внешний прокси (Caddy/Nginx на хосте) проксирует домен → 127.0.0.1:3001.
     ports:
-      - "80:80"
-      - "443:443"
-    volumes:
-      - ./Caddyfile:/etc/caddy/Caddyfile:ro
-      - caddy_data:/data
-      - caddy_config:/config
-    networks:
-      - web
-    depends_on:
-      - app
-
-networks:
-  web:
-
-volumes:
-  caddy_data:
-  caddy_config:
+      - "127.0.0.1:3001:3000"
