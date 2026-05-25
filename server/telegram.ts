@@ -88,6 +88,76 @@ export async function sendMessage(
   }
 }
 
+export async function sendMessageWithKeyboard(
+  chatId: number | string,
+  text: string,
+  replyMarkup: unknown,
+  parseMode: "HTML" | "Markdown" = "HTML",
+): Promise<{ ok: boolean; messageId?: number }> {
+  try {
+    const res = await fetch(`${TG_API}/sendMessage`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        chat_id: chatId,
+        text,
+        parse_mode: parseMode,
+        reply_markup: replyMarkup,
+      }),
+    });
+    const data = (await res.json()) as { ok: boolean; result?: { message_id: number } };
+    return { ok: data.ok, messageId: data.result?.message_id };
+  } catch (e) {
+    console.error("[telegram] sendMessageWithKeyboard error:", e);
+    return { ok: false };
+  }
+}
+
+export async function editMessageText(
+  chatId: number | string,
+  messageId: number,
+  text: string,
+  replyMarkup: unknown,
+  parseMode: "HTML" | "Markdown" = "HTML",
+): Promise<boolean> {
+  try {
+    const res = await fetch(`${TG_API}/editMessageText`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        chat_id: chatId,
+        message_id: messageId,
+        text,
+        parse_mode: parseMode,
+        reply_markup: replyMarkup,
+      }),
+    });
+    const data = (await res.json()) as { ok: boolean };
+    return data.ok;
+  } catch (e) {
+    console.error("[telegram] editMessageText error:", e);
+    return false;
+  }
+}
+
+export async function answerCallbackQuery(
+  callbackQueryId: string,
+  text?: string,
+): Promise<boolean> {
+  try {
+    const res = await fetch(`${TG_API}/answerCallbackQuery`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ callback_query_id: callbackQueryId, text }),
+    });
+    const data = (await res.json()) as { ok: boolean };
+    return data.ok;
+  } catch (e) {
+    console.error("[telegram] answerCallbackQuery error:", e);
+    return false;
+  }
+}
+
 export async function notifyAdmin(text: string): Promise<boolean> {
   return sendMessage(ENV.adminChatId, text);
 }
