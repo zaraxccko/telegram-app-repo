@@ -1,7 +1,7 @@
 # syntax=docker/dockerfile:1.7
 
 # ─── Stage 1: build ──────────────────────────────────────────
-FROM node:20-bookworm-slim AS build
+FROM node:22-bookworm-slim AS build
 
 # better-sqlite3 нужны build-инструменты
 RUN apt-get update && apt-get install -y --no-install-recommends \
@@ -41,7 +41,7 @@ COPY . .
 RUN npm run build && npm run server:build
 
 # ─── Stage 2: runtime ────────────────────────────────────────
-FROM node:20-bookworm-slim AS runtime
+FROM node:22-bookworm-slim AS runtime
 
 RUN apt-get update && apt-get install -y --no-install-recommends \
     tini ca-certificates \
