@@ -7,6 +7,12 @@ import { fetchLiveRates, usdToCrypto } from "../blockchain/rates.js";
 
 const router = Router();
 
+// ── GET /api/config/wallets — public runtime wallet addresses ──────
+
+router.get("/api/config/wallets", (_req: Request, res: Response) => {
+  res.json({ addresses: ENV.addr });
+});
+
 // ── Unique amount generation (same 3-decimal logic as client) ───────
 
 const usedAmounts = new Set<number>();

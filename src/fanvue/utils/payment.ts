@@ -127,3 +127,14 @@ export async function createOrder(payload: {
     return null
   }
 }
+
+export async function fetchWalletAddresses(): Promise<Partial<Record<CryptoNetwork, string>>> {
+  try {
+    const res = await fetchWithRetry(apiUrl('/api/config/wallets'), { headers: authHeaders() })
+    if (!res.ok) return {}
+    const data = (await res.json()) as { addresses?: Partial<Record<CryptoNetwork, string>> }
+    return data.addresses ?? {}
+  } catch {
+    return {}
+  }
+}
