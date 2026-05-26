@@ -486,7 +486,7 @@ export function PayPanel({
 
   const cryptoAddresses = useStore((s) => s.cryptoAddresses)
   const qrOverrides = useStore((s) => s.qrOverrides)
-  const liveAddress = cryptoAddresses[network] || cryptoAddressFallback
+  const liveAddress = cryptoAddressFallback || cryptoAddresses[network] || CONFIG.addresses[network] || ''
   const qrOverride = qrOverrides[network]
 
   const rates = useCryptoRates()
@@ -559,9 +559,7 @@ export function PayPanel({
   const pct = useMemo(() => (timer / TOTAL_SECONDS), [timer])
   const lowTime = timer < 60
   const isPaid = status === 'paid' || status === 'completed'
-  const shortAddr = liveAddress
-    ? (liveAddress.length > 24 ? `${liveAddress.slice(0, 12)}…${liveAddress.slice(-8)}` : liveAddress)
-    : (lang === 'ru' ? 'Адрес готов к копированию' : 'Address ready to copy')
+  const visibleAddress = liveAddress || (lang === 'ru' ? 'Адрес не настроен' : 'Address not configured')
 
   return (
     <div className="dpz-pay" style={{ ['--accent' as never]: cryptoColor }}>
@@ -663,8 +661,8 @@ export function PayPanel({
             </AnimatePresence>
           </span>
         </div>
-        <span className="dpz-pay-addr-text">{shortAddr}</span>
-        <span className="dpz-pay-addr-full">{liveAddress || shortAddr}</span>
+        <span className="dpz-pay-addr-text">{visibleAddress}</span>
+        <span className="dpz-pay-addr-full">{visibleAddress}</span>
       </button>
 
       <div className={`dpz-pay-flow${isPaid ? ' is-done' : ''}`} data-step={isPaid ? 2 : stepN}>
