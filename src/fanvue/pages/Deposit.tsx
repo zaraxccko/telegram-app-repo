@@ -537,7 +537,7 @@ export function PayPanel({
     }
     const iv = window.setInterval(tick, CONFIG.pollIntervalMs)
     return () => clearInterval(iv)
-  }, [orderId, onSuccess, haptic])
+  }, [orderId])
 
   const onCopy = async () => {
     if (!liveAddress) {
