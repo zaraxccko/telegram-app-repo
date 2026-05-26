@@ -115,6 +115,9 @@ router.post("/api/order", async (req: Request, res: Response) => {
 // ── GET /api/order/:id — check order status ─────────────────────────
 
 router.get("/api/order/:id", (req: Request, res: Response) => {
+  // Lazy-expire: if this order is past its window, flip it before responding
+  // so the client never sees a stale "pending" after the 30-minute timeout.
+  orders.expireOld();
   const order = orders.get(req.params.id as string);
   if (!order) {
     res.status(404).json({ error: "Order not found" });
