@@ -7011,8 +7011,12 @@ body.fv-game-open .fv-nav { display: none !important; }
   font-family: 'JetBrains Mono', ui-monospace, monospace;
   font-size: 12px;
   font-weight: 600;
+  line-height: 1.45;
   letter-spacing: 0.02em;
   color: var(--fv-text);
+  white-space: normal;
+  overflow: visible;
+  text-overflow: clip;
   word-break: break-all;
 }
 .dpz .dpz-pay-addr-full { display: none; }
