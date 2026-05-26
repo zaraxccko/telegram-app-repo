@@ -595,10 +595,6 @@ export const useStore = create<AppStore>()(
               } : s.user,
             }))
           }
-          const ord = await api.getMyOrders()
-          if (ord && typeof ord === 'object' && 'orders' in ord) {
-            set({ orders: (ord as { orders: Order[] }).orders })
-          }
         } catch { /* ignore */ }
       },
 
