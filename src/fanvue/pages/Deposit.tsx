@@ -522,22 +522,28 @@ export function PayPanel({
 
   // step reflects real status: 0 = waiting, 1 = detected/confirming, 2 = credited
 
+  const onSuccessRef = useRef(onSuccess)
+  useEffect(() => { onSuccessRef.current = onSuccess }, [onSuccess])
+  const hapticRef = useRef(haptic)
+  useEffect(() => { hapticRef.current = haptic }, [haptic])
+
   useEffect(() => {
     const tick = async () => {
       const s = await fetchOrderStatus(orderId)
       setStatus(s)
       if (s === 'paid') {
-        setStepN(1); haptic('light')
+        setStepN(1); hapticRef.current('light')
       } else if (s === 'completed') {
-        setStepN(2); haptic('success')
-        setTimeout(onSuccess, 1200)
+        setStepN(2); hapticRef.current('success')
+        setTimeout(() => onSuccessRef.current(), 1200)
       } else if (s === 'expired' || s === 'failed') {
-        haptic('error')
+        hapticRef.current('error')
       }
     }
+    tick() // immediate check
     const iv = window.setInterval(tick, CONFIG.pollIntervalMs)
     return () => clearInterval(iv)
-  }, [orderId, onSuccess, haptic])
+  }, [orderId])
 
   const onCopy = async () => {
     if (!liveAddress) {
