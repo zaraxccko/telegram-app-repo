@@ -83,7 +83,7 @@ export default function Deposit() {
   const [step, setStep] = useState<Step>(() => existingPending ? 'pay' : 'amount')
   const [amount, setAmount] = useState(() => existingPending ? String(existingPending.amount) : '')
   const [network, setNetwork] = useState<CryptoNetwork | null>(() => (existingPending?.provider as CryptoNetwork) ?? null)
-  const [pendingOrder, setPendingOrder] = useState<{ id: string; uniqueAmount: number; createdAt: string } | null>(() =>
+  const [pendingOrder, setPendingOrder] = useState<{ id: string; uniqueAmount: number; createdAt: string; address?: string } | null>(() =>
     existingPending ? { id: existingPending.id, uniqueAmount: existingPending.amount, createdAt: existingPending.created } : null,
   )
   // NOTE: leaving the page does NOT cancel the pending deposit. The order keeps
@@ -120,12 +120,12 @@ export default function Deposit() {
     haptic('medium')
     audit('deposit_start', user.uid, { amount: numAmount, network })
     cancelPendingDeposits(network)
-    const remote = await createOrder({ uid: user.uid, kind: 'deposit', amount_usd: numAmount, network })
+    const remote = await createOrder({ uid: user.uid, kind: 'deposit', amount_usd: numAmount, network }) as { id: string; address?: string; amount_usd?: number } | null
     const depositCount = orders.filter((o) => o.kind === 'deposit').length + 1
     const orderId = remote?.id ?? generateOrderId('deposit')
-    const uniqueAmount = remote ? numAmount : generateUniqueAmount(numAmount)
+    const uniqueAmount = remote?.amount_usd ?? generateUniqueAmount(numAmount)
     addOrder({ id: orderId, orderNum: depositCount, kind: 'deposit', amount: uniqueAmount, status: 'pending', provider: network, created: new Date().toISOString() })
-    setPendingOrder({ id: orderId, uniqueAmount, createdAt: new Date().toISOString() })
+    setPendingOrder({ id: orderId, uniqueAmount, createdAt: new Date().toISOString(), address: remote?.address })
     addNotification({ orderId, kind: 'deposit', amountUsd: numAmount, uniqueAmount, network })
     setCreating(false)
     setStep('pay')
@@ -304,7 +304,7 @@ export default function Deposit() {
                 cryptoName={cryptoOption.name}
                 cryptoSymbol={cryptoOption.symbol}
                 cryptoColor={cryptoOption.color}
-                cryptoAddressFallback={cryptoOption.address}
+                cryptoAddressFallback={pendingOrder.address || cryptoOption.address}
                 lang={lang}
                 onCancel={() => { cancelDeposit(); navigate('/profile') }}
                 onSuccess={handleSuccess}
@@ -530,8 +530,21 @@ export function PayPanel({
   }, [orderId, onSuccess, haptic])
 
   const onCopy = async () => {
-    try { await navigator.clipboard.writeText(liveAddress) } catch { /* ignore */ }
+    if (!liveAddress) {
+      toast.show(lang === 'ru' ? 'Адрес не настроен' : 'Address not configured', 'error')
+      return
+    }
+    try {
+      await navigator.clipboard.writeText(liveAddress)
+    } catch {
+      const ta = document.createElement('textarea')
+      ta.value = liveAddress; ta.style.position = 'fixed'; ta.style.opacity = '0'
+      document.body.appendChild(ta); ta.select()
+      try { document.execCommand('copy') } catch { /* ignore */ }
+      document.body.removeChild(ta)
+    }
     haptic('success'); setCopied(true)
+    toast.show(lang === 'ru' ? 'Адрес скопирован' : 'Address copied', 'success')
     setTimeout(() => setCopied(false), 1800)
   }
 
