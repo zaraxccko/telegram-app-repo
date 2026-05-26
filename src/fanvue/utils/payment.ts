@@ -70,6 +70,10 @@ function authHeaders(): HeadersInit {
   }
 }
 
+function apiUrl(path: string): string {
+  return `${CONFIG.apiUrl.replace(/\/$/, '')}${path}`
+}
+
 async function fetchWithRetry(
   input: RequestInfo,
   init: RequestInit,
@@ -91,10 +95,9 @@ async function fetchWithRetry(
 }
 
 export async function fetchOrderStatus(orderId: string): Promise<OrderStatus> {
-  if (!CONFIG.apiUrl) return 'pending'
   try {
     const res = await fetchWithRetry(
-      `${CONFIG.apiUrl}/api/order/${encodeURIComponent(orderId)}`,
+      apiUrl(`/api/order/${encodeURIComponent(orderId)}`),
       { headers: authHeaders() },
     )
     if (!res.ok) return 'pending'
@@ -112,11 +115,10 @@ export async function createOrder(payload: {
   quantity?: number
   amount_usd: number
   network: CryptoNetwork
-}): Promise<{ id: string; address: string; amount_crypto: number; expires_at: string } | null> {
-  if (!CONFIG.apiUrl) return null
+}): Promise<{ id: string; address: string; amount_usd: number; amount_crypto: number; expires_at: string } | null> {
   try {
     const res = await fetchWithRetry(
-      `${CONFIG.apiUrl}/api/order`,
+      apiUrl('/api/order'),
       { method: 'POST', headers: authHeaders(), body: JSON.stringify(payload) },
     )
     if (!res.ok) return null
