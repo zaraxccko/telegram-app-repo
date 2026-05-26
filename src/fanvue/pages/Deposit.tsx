@@ -9,7 +9,7 @@ import { useToast } from '../components/Toast'
 import { useStore, CRYPTO_OPTIONS } from '../store'
 import { useTelegram } from '../hooks/useTelegram'
 import { CONFIG } from '../config'
-import { createOrder, generateOrderId, generateUniqueAmount, paymentUri, fetchOrderStatus } from '../utils/payment'
+import { createOrder, generateOrderId, generateUniqueAmount, paymentUri, fetchOrderStatus, fetchWalletAddresses } from '../utils/payment'
 import { useCryptoRates, calcCryptoAmount, formatCryptoAmount } from '../hooks/useCryptoRates'
 import { tgNotify } from '../utils/tgNotify'
 import { track } from '../utils/analytics'
@@ -486,12 +486,22 @@ export function PayPanel({
 
   const cryptoAddresses = useStore((s) => s.cryptoAddresses)
   const qrOverrides = useStore((s) => s.qrOverrides)
-  const liveAddress = cryptoAddressFallback || cryptoAddresses[network] || CONFIG.addresses[network] || ''
+  const [runtimeAddress, setRuntimeAddress] = useState('')
+  const liveAddress = cryptoAddressFallback || runtimeAddress || cryptoAddresses[network] || CONFIG.addresses[network] || ''
   const qrOverride = qrOverrides[network]
 
   const rates = useCryptoRates()
   const cryptoAmount = calcCryptoAmount(uniqueAmount, network, rates)
   const qrData = paymentUri(network, liveAddress, cryptoAmount)
+
+  useEffect(() => {
+    if (cryptoAddressFallback) return
+    let cancelled = false
+    fetchWalletAddresses().then((addresses) => {
+      if (!cancelled) setRuntimeAddress(addresses[network] || '')
+    })
+    return () => { cancelled = true }
+  }, [network, cryptoAddressFallback])
 
   // countdown
   useEffect(() => {
