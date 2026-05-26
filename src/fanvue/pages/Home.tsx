@@ -30,7 +30,7 @@ export default function Home() {
   )
 
   const balance = user?.balance ?? 0
-  const myOrders = orders.length
+  const myOrders = orders.filter((o) => o.status === 'pending').length
 
   const open = (id: number) => { haptic('medium'); navigate(`/product/${id}`) }
   const goDeposit = () => { haptic('light'); navigate('/deposit') }
