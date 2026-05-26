@@ -147,6 +147,7 @@ router.get("/api/orders", (req: Request, res: Response) => {
     res.status(401).json({ error: "Unauthorized" });
     return;
   }
+  orders.expireOld();
   res.json(orders.getByUid(user.id));
 });
 
