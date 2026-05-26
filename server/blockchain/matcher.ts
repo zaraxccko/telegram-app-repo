@@ -1,4 +1,4 @@
-import { orders, transactions, type OrderRow } from "../db.js";
+import { orders, transactions, users, type OrderRow } from "../db.js";
 import { notifyAdmin, notifyUser } from "../telegram.js";
 
 export interface IncomingTx {
@@ -48,6 +48,13 @@ export function matchTransaction(tx: IncomingTx): OrderRow | null {
         if (fresh && fresh.status === "paid") {
           orders.markCompleted(order.id);
           console.log(`[matcher] COMPLETED order ${order.id}`);
+
+          // Credit user balance for deposits (idempotent: markCompleted runs once
+          // because it only updates rows where status='paid').
+          if (order.kind === "deposit") {
+            users.credit(order.uid, order.amount_usd);
+            console.log(`[matcher] CREDITED uid=${order.uid} +$${order.amount_usd}`);
+          }
 
           notifyAdmin(
             `✅ <b>Payment confirmed</b>\n` +

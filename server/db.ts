@@ -48,6 +48,21 @@ db.exec(`
   CREATE INDEX IF NOT EXISTS idx_tx_order ON transactions(order_id);
 `);
 
+db.exec(`
+  CREATE TABLE IF NOT EXISTS users (
+    uid          INTEGER PRIMARY KEY,
+    username     TEXT,
+    full_name    TEXT,
+    balance      REAL NOT NULL DEFAULT 0,
+    spent        REAL NOT NULL DEFAULT 0,
+    purchases    INTEGER NOT NULL DEFAULT 0,
+    ref_earned   REAL NOT NULL DEFAULT 0,
+    ref_count    INTEGER NOT NULL DEFAULT 0,
+    ref_balance  REAL NOT NULL DEFAULT 0,
+    created_at   TEXT NOT NULL DEFAULT (datetime('now'))
+  );
+`);
+
 export interface OrderRow {
   id: string;
   uid: number;
@@ -91,6 +106,48 @@ const stmts = {
     VALUES (@tx_hash, @network, @from_addr, @to_addr, @amount, @token, @block, @ts, @order_id)
   `),
   getTxByHash: db.prepare(`SELECT * FROM transactions WHERE tx_hash = ?`),
+};
+
+const userStmts = {
+  upsert: db.prepare(`
+    INSERT INTO users (uid, username, full_name) VALUES (@uid, @username, @full_name)
+    ON CONFLICT(uid) DO UPDATE SET
+      username = COALESCE(excluded.username, users.username),
+      full_name = COALESCE(excluded.full_name, users.full_name)
+  `),
+  get: db.prepare(`SELECT * FROM users WHERE uid = ?`),
+  credit: db.prepare(`UPDATE users SET balance = balance + @amount WHERE uid = @uid`),
+};
+
+export interface UserRow {
+  uid: number;
+  username: string | null;
+  full_name: string | null;
+  balance: number;
+  spent: number;
+  purchases: number;
+  ref_earned: number;
+  ref_count: number;
+  ref_balance: number;
+  created_at: string;
+}
+
+export const users = {
+  upsert(u: { uid: number; username?: string | null; full_name?: string | null }) {
+    userStmts.upsert.run({
+      uid: u.uid,
+      username: u.username ?? null,
+      full_name: u.full_name ?? null,
+    });
+    return userStmts.get.get(u.uid) as UserRow;
+  },
+  get(uid: number): UserRow | undefined {
+    return userStmts.get.get(uid) as UserRow | undefined;
+  },
+  credit(uid: number, amount: number) {
+    userStmts.upsert.run({ uid, username: null, full_name: null });
+    userStmts.credit.run({ uid, amount });
+  },
 };
 
 export const orders = {

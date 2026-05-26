@@ -165,6 +165,7 @@ interface AppStore {
   markNotificationsRead: () => void
   removeNotification: (orderId: string) => void
   creditDeposit: (orderId: string, amount: number, txid?: string) => void
+  refreshUser: () => Promise<void>
   creditRefBalance: (amount: number) => void
   spendRefBalance: (amount: number) => void
   addRefWithdrawal: (w: Omit<RefWithdrawal, 'id' | 'createdAt'>) => void
@@ -558,14 +559,43 @@ export const useStore = create<AppStore>()(
           return
         }
         audit('deposit_credited', state.user?.uid, { orderId, amount })
+        // When backend is enabled, the server is the source of truth for balance —
+        // it credits in matcher.ts on deposit completion. Don't add locally or we
+        // double-count (local +X now, then server overwrites with +X next session).
+        const serverAuthoritative = api.isEnabled()
         set((s) => ({
-          user: s.user ? { ...s.user, balance: Math.max(0, s.user.balance + amount) } : null,
+          user: s.user && !serverAuthoritative
+            ? { ...s.user, balance: Math.max(0, s.user.balance + amount) }
+            : s.user,
           orders: s.orders.map((o) =>
             o.id === orderId
               ? { ...o, status: 'completed' as const, paid_at: new Date().toISOString(), ...(txid ? { txid } : {}) }
               : o
           ),
         }))
+        // Pull fresh balance + orders from server so UI updates immediately.
+        if (serverAuthoritative) get().refreshUser()
+      },
+
+      refreshUser: async () => {
+        if (!api.isEnabled()) return
+        try {
+          const serverUser = await api.auth({})
+          if (serverUser && typeof serverUser === 'object') {
+            const u = serverUser as Record<string, unknown>
+            set((s) => ({
+              user: s.user ? {
+                ...s.user,
+                balance:     Number(u.balance     ?? s.user.balance),
+                spent:       Number(u.spent       ?? s.user.spent),
+                purchases:   Number(u.purchases   ?? s.user.purchases),
+                ref_earned:  Number(u.ref_earned  ?? s.user.ref_earned),
+                ref_count:   Number(u.ref_count   ?? s.user.ref_count),
+                ref_balance: Number(u.ref_balance ?? s.user.ref_balance),
+              } : s.user,
+            }))
+          }
+        } catch { /* ignore */ }
       },
 
       creditRefBalance: (amount) => {
