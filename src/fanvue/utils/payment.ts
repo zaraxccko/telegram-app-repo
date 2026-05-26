@@ -52,12 +52,70 @@ export function generateUniqueAmount(base: number): number {
   return Math.round((base + offset) * 1000) / 1000
 }
 
-/** Payment URI for deep links (BIP21, EIP-681, TON) */
+/**
+ * Build a wallet deep-link URI for the QR code.
+ *  - BTC  → BIP21
+ *  - ETH  → EIP-681 (value in wei)
+ *  - ERC20 (USDT/USDC) → EIP-681 token transfer on chainId 1
+ *  - BEP20 (USDT)      → EIP-681 token transfer on chainId 56
+ *  - TON  → ton://transfer (amount in nano)
+ *  - SOL / SPL → Solana Pay (https://docs.solanapay.com/spec)
+ *  - TRC20 (USDT) → tron: URI (Trust Wallet / TronLink)
+ * Falls back to bare address if amount is unknown.
+ */
+const ERC20 = {
+  trc20:    { contract: 'TR7NHqjeKQxGTCi8q8ZY4pL8otSzgjLj6t', decimals: 6 }, // USDT on Tron
+  erc20:    { contract: '0xdAC17F958D2ee523a2206206994597C13D831ec7', decimals: 6, chain: 1 },  // USDT ETH
+  bep20:    { contract: '0x55d398326f99059fF775485246999027B3197955', decimals: 18, chain: 56 }, // USDT BSC
+  usdc_eth: { contract: '0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48', decimals: 6, chain: 1 },   // USDC ETH
+  usdc_sol: { mint: 'EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v', decimals: 6 },              // USDC SPL
+} as const
+
+function toUnits(amount: number, decimals: number): string {
+  // safe integer string of amount * 10^decimals (avoids float drift)
+  const [whole, frac = ''] = String(amount).split('.')
+  const fracPadded = (frac + '0'.repeat(decimals)).slice(0, decimals)
+  return (BigInt(whole || '0') * BigInt(10) ** BigInt(decimals) + BigInt(fracPadded || '0')).toString()
+}
+
 export function paymentUri(network: CryptoNetwork, address: string, amount: number): string {
-  if (network === 'btc') return `bitcoin:${address}?amount=${amount}`
-  if (network === 'eth') return `ethereum:${address}?value=${amount}`
-  if (network === 'ton') return `ton://transfer/${address}?amount=${Math.round(amount * 1e9)}`
-  return address
+  if (!address) return ''
+  if (!amount || amount <= 0) return address
+
+  switch (network) {
+    case 'btc':
+      return `bitcoin:${address}?amount=${amount}`
+    case 'eth': {
+      const wei = toUnits(amount, 18)
+      return `ethereum:${address}@1?value=${wei}`
+    }
+    case 'ton':
+      return `ton://transfer/${address}?amount=${Math.round(amount * 1e9)}`
+    case 'sol':
+      return `solana:${address}?amount=${amount}`
+    case 'usdc_sol': {
+      const t = ERC20.usdc_sol
+      return `solana:${address}?amount=${amount}&spl-token=${t.mint}`
+    }
+    case 'erc20': {
+      const t = ERC20.erc20
+      return `ethereum:${t.contract}@${t.chain}/transfer?address=${address}&uint256=${toUnits(amount, t.decimals)}`
+    }
+    case 'usdc_eth': {
+      const t = ERC20.usdc_eth
+      return `ethereum:${t.contract}@${t.chain}/transfer?address=${address}&uint256=${toUnits(amount, t.decimals)}`
+    }
+    case 'bep20': {
+      const t = ERC20.bep20
+      return `ethereum:${t.contract}@${t.chain}/transfer?address=${address}&uint256=${toUnits(amount, t.decimals)}`
+    }
+    case 'trc20': {
+      const t = ERC20.trc20
+      return `tron:${address}?amount=${toUnits(amount, t.decimals)}&token=${t.contract}`
+    }
+    default:
+      return address
+  }
 }
 
 function authHeaders(): HeadersInit {

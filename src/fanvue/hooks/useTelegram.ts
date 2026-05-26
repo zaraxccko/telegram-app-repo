@@ -29,6 +29,24 @@ function getTg(): TgWebApp | undefined {
   return (window as Window & { Telegram?: { WebApp?: TgWebApp } }).Telegram?.WebApp
 }
 
+// Module-level singleton handler so we never stack multiple BackButton callbacks
+// on the Telegram WebApp. Telegram's BackButton.onClick is additive — without
+// this, fast route changes could double-register or end up with a stale handler
+// after offClick is called with a different function reference.
+let activeBackHandler: (() => void) | null = null
+function setActiveBackHandler(cb: (() => void) | null) {
+  const tg = getTg()
+  if (activeBackHandler && tg?.BackButton) {
+    try { tg.BackButton.offClick(activeBackHandler) } catch { /* ignore */ }
+  }
+  activeBackHandler = cb
+  if (cb && tg?.BackButton) {
+    try { tg.BackButton.onClick(cb); tg.BackButton.show() } catch { /* ignore */ }
+  } else if (!cb && tg?.BackButton) {
+    try { tg.BackButton.hide() } catch { /* ignore */ }
+  }
+}
+
 export function useTelegram() {
   const haptic = (type: HapticImpact | HapticNotification = 'light') => {
     try {
@@ -79,19 +97,8 @@ export function useTelegram() {
   }
 
   const showBackButton = (cb: () => void) => {
-    try {
-      const tg = getTg()
-      tg?.BackButton?.show()
-      tg?.BackButton?.onClick(cb)
-      return () => {
-        try {
-          tg?.BackButton?.offClick(cb)
-          tg?.BackButton?.hide()
-        } catch { /* ignore */ }
-      }
-    } catch {
-      return () => { /* noop */ }
-    }
+    setActiveBackHandler(cb)
+    return () => setActiveBackHandler(null)
   }
 
   return { haptic, init, showBackButton, tg: getTg() }
