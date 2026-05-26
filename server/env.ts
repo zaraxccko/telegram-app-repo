@@ -36,4 +36,5 @@ export const ENV = {
   etherscanKey: opt("ETHERSCAN_API_KEY"),
   bscscanKey: opt("BSCSCAN_API_KEY"),
   trongridKey: opt("TRONGRID_API_KEY"),
+  solRpcUrl: opt("SOL_RPC_URL"),
 };

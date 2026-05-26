@@ -2,7 +2,7 @@ import { ENV } from "../env.js";
 import { matchTransaction, type IncomingTx } from "./matcher.js";
 
 const USDC_MINT = "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v";
-const RPC = "https://api.mainnet-beta.solana.com";
+const RPC = process.env.SOL_RPC_URL || "https://api.mainnet-beta.solana.com";
 
 interface SigInfo {
   signature: string;
