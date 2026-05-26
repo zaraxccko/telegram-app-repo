@@ -530,8 +530,21 @@ export function PayPanel({
   }, [orderId, onSuccess, haptic])
 
   const onCopy = async () => {
-    try { await navigator.clipboard.writeText(liveAddress) } catch { /* ignore */ }
+    if (!liveAddress) {
+      toast.show(lang === 'ru' ? 'Адрес не настроен' : 'Address not configured', 'error')
+      return
+    }
+    try {
+      await navigator.clipboard.writeText(liveAddress)
+    } catch {
+      const ta = document.createElement('textarea')
+      ta.value = liveAddress; ta.style.position = 'fixed'; ta.style.opacity = '0'
+      document.body.appendChild(ta); ta.select()
+      try { document.execCommand('copy') } catch { /* ignore */ }
+      document.body.removeChild(ta)
+    }
     haptic('success'); setCopied(true)
+    toast.show(lang === 'ru' ? 'Адрес скопирован' : 'Address copied', 'success')
     setTimeout(() => setCopied(false), 1800)
   }
 
